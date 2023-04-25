@@ -6,7 +6,7 @@ import wikipediaapi as wapi
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
-import time # May need this to introduce delays. Sleep for 1 second with time.sleep(1)
+import time # May need this to introduce delays for API. Sleep for 1 second with time.sleep(1)
 
 def get_text(page):
     """
@@ -20,19 +20,20 @@ def get_text(page):
         set: text from the wiki page
     """
     wiki_set_of_text = list()
-    links = page.text
-    for title in sorted(links.keys()):
-        wiki_set_of_text.append(title.lower())
+    page_text = page.text
+    wiki_set_of_text = page_text.split()
     return wiki_set_of_text
 
 def count_words(wiki_set_of_text):
     dict_of_words = {}
     for word in wiki_set_of_text:
         if word in dict_of_words:
-            value_buffer = wiki_set_of_text[word]
-            wiki_set_of_text[word] = value_buffer+1
+            if word.lower() == word:
+                value_buffer = dict_of_words[word]
+                dict_of_words[word] = value_buffer+1
         else:
-            wiki_set_of_text[word] = 0
+            dict_of_words[word] = 0
+    return dict_of_words
 
 def create_graph(completed_dict, graph_num):
     """
@@ -59,7 +60,7 @@ def create_graph(completed_dict, graph_num):
     ax.set_xlabel('Word occurrences')
     ax.set_title('Top words on the wiki page')
     plt.savefig("words.jpg")
-    print("Top", graph_num, "programming languages:")
+    print("Top", graph_num, " word in the wiki page")
     list_length = len(number) #Extraneous variable suppresses enumerate warning
     for index in range(list_length):
         print (language[index], "-", number[index])
@@ -94,17 +95,20 @@ def main(num_to_show):
     """
     print("Accessing Wikipedia API")
     wiki_wiki = wapi.Wikipedia('en')
-    page = wiki_wiki.page('List of programming languages')    
+    page = wiki_wiki.page('List of programming languages')
+    print("Getting text")
     wall_of_text = get_text(page)
-    completed_dict = count_words(wall_of_text)
-    sorted_dict = dict(sorted(completed_dict.items(), key=lambda item:item[1], reverse=True)) # Sort puts smallest value first
-    create_graph(sorted_dict, num_to_show)
+    print(wall_of_text)
+    print("Counting words")
+    #completed_dict = count_words(wall_of_text)
+    #sorted_dict = dict(sorted(completed_dict.items(), key=lambda item:item[1], reverse=True)) # Sort puts smallest value first
+    #create_graph(sorted_dict, num_to_show)
 
 if __name__ == '__main__':
     # Verify proper command line arguments
     if len(sys.argv) != 2 or any(not char.isdigit() for char in sys.argv[1]):
         print("Exactly one numeric argument is required defining the number of results to list")
-        print("Example: python rank.py 50")
+        print("Example: python counter.py 50")
         quit()
 
     num_to_show = int(sys.argv[1])
