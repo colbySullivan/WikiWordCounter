@@ -21,16 +21,23 @@ def get_text(page):
     """
     wiki_set_of_text = list()
     page_text = page.text
-    wiki_set_of_text = page_text.split()
+    text_no_links = page_text.split()
+    wiki_links = page.links
+    text_links = list()
+    for title in sorted(wiki_links.keys()):
+            split_title = title.split()
+            for split in split_title:
+                if split.isalnum():
+                    text_links.append(split)
+    wiki_set_of_text = text_no_links + text_links
     return wiki_set_of_text
 
 def count_words(wiki_set_of_text):
     dict_of_words = {}
     for word in wiki_set_of_text:
         if word in dict_of_words:
-            if word.lower() == word:
-                value_buffer = dict_of_words[word]
-                dict_of_words[word] = value_buffer+1
+            value_buffer = dict_of_words[word]
+            dict_of_words[word] = value_buffer+1
         else:
             dict_of_words[word] = 0
     return dict_of_words
@@ -43,7 +50,7 @@ def create_graph(completed_dict, graph_num):
     When graph is finished then this will print the top programming 
     languages and and their values to the console.
     
-    Source help: https://matplotlib.org/stable/gallery/lines_bars_and_markers/barh.html
+    https://matplotlib.org/stable/gallery/lines_bars_and_markers/barh.html
 
     Args:
         completed_dict (dictionary): Completed dictionary to be split
@@ -58,7 +65,7 @@ def create_graph(completed_dict, graph_num):
     ax.set_yticks(y_pos)
     ax.set_yticklabels(language)
     ax.set_xlabel('Word occurrences')
-    ax.set_title('Top words on the wiki page')
+    ax.set_title('Top words on a wiki page')
     plt.savefig("words.jpg")
     print("Top", graph_num, " word in the wiki page")
     list_length = len(number) #Extraneous variable suppresses enumerate warning
@@ -88,28 +95,24 @@ def list_from_dict(complete_dict_list, graph_num):
 
 ##########################################################################
 
-def main(num_to_show):
+def main():
     """ 
         Parameters:
         num_to_show -- Number of top languages to show in ranking
     """
+    title_of_page = "Danny DeVito"
+    top_words = 10
     print("Accessing Wikipedia API")
     wiki_wiki = wapi.Wikipedia('en')
-    page = wiki_wiki.page('List of programming languages')
+    page = wiki_wiki.page(title_of_page)
     print("Getting text")
     wall_of_text = get_text(page)
-    print(wall_of_text)
+    #print(wall_of_text)
     print("Counting words")
-    #completed_dict = count_words(wall_of_text)
-    #sorted_dict = dict(sorted(completed_dict.items(), key=lambda item:item[1], reverse=True)) # Sort puts smallest value first
-    #create_graph(sorted_dict, num_to_show)
+    completed_dict = count_words(wall_of_text)
+    sorted_dict = dict(sorted(completed_dict.items(), key=lambda item:item[1], reverse=True)) # Sort puts smallest value first
+    create_graph(sorted_dict, top_words)
 
-if __name__ == '__main__':
-    # Verify proper command line arguments
-    if len(sys.argv) != 2 or any(not char.isdigit() for char in sys.argv[1]):
-        print("Exactly one numeric argument is required defining the number of results to list")
-        print("Example: python counter.py 50")
-        quit()
-
-    num_to_show = int(sys.argv[1])
-    main(num_to_show)
+if __name__ == "__main__":
+    # execute only if run as a script
+    main()
